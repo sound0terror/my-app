@@ -1,0 +1,17 @@
+.NavigationItems-Item {
+    list-style: none;
+    display: inline-block;
+    margin-right: 30px;
+}
+
+.NavigationItems-Item:last-child {
+    margin-right: 0;
+}
+.NavigationItems-Link {
+    text-decoration: none;
+    color: #000;
+}
+
+.NavigationItems-Link:hover {
+    border-bottom: 2px solid #000000;
+}

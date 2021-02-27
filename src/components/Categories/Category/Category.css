@@ -1,0 +1,11 @@
+.Category-Item {
+    list-style: none;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin: 20px;
+    display: inline-block;
+}
+
+.Category-Item:hover {
+    border-bottom: 2px solid #61dafb;
+}

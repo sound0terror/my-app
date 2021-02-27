@@ -1,0 +1,25 @@
+.Promo {
+    position: relative;
+    z-index: 10;
+}
+
+.Promo-Image {
+    width: 100%;
+    display: block;
+}
+
+.Promo-Item {
+    width: 500px;
+    position: absolute;
+    top: 20%;
+    left: 20%;
+    color: #e5fccc;
+}
+.Promo-Title {
+    font-size: 50px;
+    text-transform: uppercase;
+}
+.Promo-Text {
+    font-size: 20px;
+    line-height: 2;
+}

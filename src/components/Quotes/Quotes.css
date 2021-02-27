@@ -1,0 +1,7 @@
+.Quotes {
+    display: flex;
+    justify-content: center;
+    align-items: baseline;
+    min-height: 400px;
+    flex-wrap: wrap;
+}
