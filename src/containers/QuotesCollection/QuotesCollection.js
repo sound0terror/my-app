@@ -1,55 +1,62 @@
 import Categories from "../../components/Categories/Categories";
-import {useEffect} from 'react';
+import {useEffect, useRef} from 'react';
 import {useArray} from "../../hooks/useArray";
 import axios from '../../axios-quotes';
 import {useHistory} from "react-router";
 import Quotes from "../../components/Quotes/Quotes";
-import {useLoader} from "../../hooks/useLoader";
 
 const QuotesCollection = (props) => {
     const [categories, setCategories] = useArray([]);
     const [quotes, setQuotes] = useArray([]);
 
-    const spinner = useLoader(axios);
+    const isMountedRef = useRef(false);
     const history = useHistory();
 
     useEffect(() => {
-        getCategories();
-    },[])
+        isMountedRef.current = true;
+        if (categories.length === 0) {
+            getCategories().catch(e => e);
+        }
+        return () => {isMountedRef.current = false};
+    }, [isMountedRef])
 
     useEffect(() => {
-        if(props.match.params.category)
-            getQuotes(props.match.params.category);
+        isMountedRef.current = true;
+        if (props.match.params.category)
+            getQuotes(props.match.params.category).catch(e => e);
         else
-            getQuotes();
-    }, [props.match.params.category])
+            getQuotes().catch(e => e);
+        return () => {isMountedRef.current = false};
+    }, [props.match.params.category, isMountedRef])
 
     const deleteQuote = (id) => {
-       axios.delete('/quotes/' + id + ".json").then(res => {
-           quotes.removeById(id);
-       })
+        axios.delete('/quotes/' + id + ".json").then(res => {
+            quotes.removeById(id);
+        })
     }
-    const getQuotes = (category) => {
+    const getQuotes = async category => {
         let path = '';
-        if(category) path = `?orderBy="category"&equalTo="${category}"`;
-        axios.get(`/quotes.json${path}`).then(res => {
+        if (category) path = `?orderBy="category"&equalTo="${category}"`;
+        const quotes = await axios.get(`/quotes.json${path}`).then(res => {
             const keys = Object.keys(res.data);
-            const quotes = keys.map(key => (
+            console.log(keys)
+            return keys.map(key => (
                 {
-                author: res.data[key].author,
-                quote: res.data[key].quote,
-                id: key
+                    author: res.data[key].author,
+                    quote: res.data[key].quote,
+                    id: key
                 }
-                ));
-            setQuotes(quotes);
+            ));
         })
+        console.log(quotes);
+        if(isMountedRef.current) setQuotes(quotes);
     }
-    const getCategories = () => {
-        axios.get('/categories.json').then(res => { // {name:"", id: ""}
+    const getCategories = async () => {
+        let categories = await axios.get('/categories.json').then(res => { // {name:"", id: ""}
             const keys = Object.keys(res.data);
-            const categories = keys.map(key => ({name: res.data[key], id: key}));
-            setCategories(categories);
+            return keys.map(key => ({name: res.data[key], id: key}));
         })
+        if (isMountedRef.current) setCategories(categories);
     }
 
     const editQuote = (quoteId) => {
@@ -60,7 +67,6 @@ const QuotesCollection = (props) => {
     }
     return (
         <>
-            {spinner}
             <Categories changeLocation={changeLocation} categories={categories}/>
             <Quotes editQuote={editQuote} deleteQuote={deleteQuote} quotes={quotes}/>
         </>

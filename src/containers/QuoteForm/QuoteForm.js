@@ -1,11 +1,12 @@
 import axios from "../../axios-quotes";
-import {useState, useEffect} from 'react';
+import {useState, useEffect, useRef} from 'react';
 import './QuoteForm.css';
 import {useHistory} from "react-router";
 import {useLoader} from "../../hooks/useLoader";
 
 const QuoteForm = (props) => {
     const history = useHistory();
+    const isMountedRef = useRef(false);
     const spinner = useLoader(axios);
     const [inputValues, setInputValues] = useState({
         quote: "",
@@ -15,15 +16,16 @@ const QuoteForm = (props) => {
     const [categories, setCategories] = useState([]);
 
     useEffect(() => {
+        isMountedRef.current = true;
         getCategories();
-        if(props.match.params.quoteId) getQuoteInfo()
-    }, [])
+        if (props.match.params.quoteId) getQuoteInfo()
+        return () => {isMountedRef.current = false};
+    }, [isMountedRef])
 
     const getQuoteInfo = () => {
         axios.get(`/quotes/${props.match.params.quoteId}.json`).then(res => {
             const quote = res.data;
-            setInputValues(quote)
-
+            if(isMountedRef.current) setInputValues(quote);
         })
     }
     const editQuote = (e) => {
@@ -46,11 +48,12 @@ const QuoteForm = (props) => {
         axios.get('/categories.json').then(res => {
             const keys = Object.keys(res.data);
             const categories = keys.map(key => ({name: res.data[key], id: key}));
-            setCategories(categories);
+            if(isMountedRef.current)
+                setCategories(categories);
         });
     }
     const chooseAction = e => {
-        if(props.match.params.quoteId) editQuote(e);
+        if (props.match.params.quoteId) editQuote(e);
         else sendQuote(e);
     }
     return (
@@ -61,10 +64,11 @@ const QuoteForm = (props) => {
                 <div className="form-right-decoration"/>
                 <div className="circle"/>
                 <div className="form-inner">
-                    <h3>{props.match.params.quoteId ?'Именить цитату' : 'Создать новую цитату'}</h3>
+                    <h3>{props.match.params.quoteId ? 'Именить цитату' : 'Создать новую цитату'}</h3>
                     {/*Вот тут была ошибка value должен быть не только у option-ов, но и у самого select-а*/}
                     <select onChange={inputChangeHandler} value={inputValues.category} name="category" id="category">
-                        {categories.map(category => <option value={category.id} key={category.id}>{category.name}</option>)}
+                        {categories.map(category => <option value={category.id}
+                                                            key={category.id}>{category.name}</option>)}
                     </select>
                     <label htmlFor="Form-Author">
                         <input onChange={inputChangeHandler}
@@ -82,7 +86,8 @@ const QuoteForm = (props) => {
                                   placeholder="Введите цитату"
                                   rows="3"/>
                     </label>
-                    <button className="Form-Button">{props.match.params.quoteId ?'Именить цитату' : 'Сохранить цитату'}</button>
+                    <button
+                        className="Form-Button">{props.match.params.quoteId ? 'Именить цитату' : 'Сохранить цитату'}</button>
                 </div>
             </div>
         </form>
